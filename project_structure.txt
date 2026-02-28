@@ -1,0 +1,47 @@
+agentic-meeting-intelligence/
+├── backend/                      
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── routes/           # REST (auth, meetings) & ws.py (WebSockets)
+│   │   │   └── dependencies.py   # Auth & DB dependency injection
+│   │   ├── core/
+│   │   │   ├── config.py         # Pydantic env validation
+│   │   │   └── security.py       # JWT & bcrypt logic
+│   │   ├── db/
+│   │   │   ├── session.py        # Postgres/SQLAlchemy setup
+│   │   │   └── models.py         # Users, Meetings, Speakers, Tasks tables
+│   │   ├── services/
+│   │   │   ├── audio.py          # Faster-Whisper & Pyannote streaming logic
+│   │   │   ├── llm.py            # Groq & LangChain insight generation
+│   │   │   └── rag.py            # Vector DB (Chroma) cross-meeting memory
+│   │   ├── worker/
+│   │   │   └── tasks.py          # Celery background jobs (final reports)
+│   │   └── main.py               # FastAPI entry point
+│   ├── .env
+│   ├── requirements.txt
+│   └── Dockerfile
+├── frontend/                     
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── layout/           # Sidebar, Topbar
+│   │   │   ├── meeting/          # Live transcript, AI insights panel, WebRTC controls
+│   │   │   └── dashboard/        # Task Kanban, Calendar view, upcoming widgets
+│   │   ├── hooks/
+│   │   │   ├── useAudioStream.ts # Microphone chunking via MediaRecorder
+│   │   │   └── useMeetingWS.ts   # WebSocket connection management
+│   │   ├── services/
+│   │   │   └── api.ts            # Axios configuration
+│   │   ├── store/
+│   │   │   └── useStore.ts       # Zustand state (tasks, user, meetings)
+│   │   ├── types/
+│   │   │   └── index.ts          # Shared TypeScript interfaces
+│   │   ├── App.tsx               # React Router config
+│   │   └── main.tsx              # React DOM render
+│   ├── .env
+│   ├── index.html
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.ts
+├── docker-compose.yml            # Orchestrates Postgres, Redis, backend, frontend
+├── .gitignore
+└── README.md
