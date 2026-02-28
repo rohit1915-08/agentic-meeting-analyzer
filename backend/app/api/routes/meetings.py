@@ -6,6 +6,7 @@ from app.db.models import Meeting, Base
 from app.db.session import engine
 from app.services.rag import add_meeting_to_rag, query_meetings
 from app.services.llm import generate_live_insights, answer_question_with_context
+from app.services.rag import delete_meeting_from_rag
 
 Base.metadata.create_all(bind=engine)
 
@@ -67,12 +68,24 @@ async def chat_with_meetings(request: ChatRequest):
     return {"answer": answer}
 
 # 🚨 PATH PARAMETERS MUST BE LAST 🚨
+
 @router.delete("/{meeting_id}")
 async def delete_meeting(meeting_id: str, db: Session = Depends(get_db)):
     meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
     if not meeting:
         return {"error": "Meeting not found"}
     
+    # 1. Delete from PostgreSQL
     db.delete(meeting)
     db.commit()
-    return {"status": "success", "message": "Meeting deleted"}
+
+    # 2. Sync with ChromaDB (Remove the "Ghost" context)
+    try:
+        delete_meeting_from_rag(meeting_id)
+        print(f"✅ Successfully removed meeting {meeting_id} from vector store.")
+    except Exception as e:
+        # We don't want the whole request to fail if RAG deletion lags, 
+        # but we definitely want to log it.
+        print(f"⚠️ Warning: Database deleted but RAG removal failed: {e}")
+    
+    return {"status": "success", "message": "Meeting deleted from DB and vector store"}

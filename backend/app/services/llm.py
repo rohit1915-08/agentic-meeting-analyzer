@@ -5,13 +5,11 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from datetime import datetime
+from langchain_ollama import ChatOllama
 
-load_dotenv()
-
-llm = ChatGroq(
-    api_key=os.getenv("GROQ_API_KEY"),
-    model_name="llama-3.1-8b-instant",
-    temperature=0.1,
+llm = ChatOllama(
+    model="llama3.1:8b",
+    temperature=0.1
 )
 
 prompt_template = PromptTemplate(

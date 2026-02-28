@@ -44,3 +44,9 @@ def query_meetings(question: str, k=3):
     # Combine the relevant snippets into a single context string
     context = "\n\n---\n\n".join([doc.page_content for doc in results])
     return context
+
+def delete_meeting_from_rag(meeting_id: str):
+    # Ensure this directory matches where you persist your data
+    vector_store = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
+    # Chroma uses the metadata or ID to find and purge the specific document
+    vector_store.delete(ids=[meeting_id])
