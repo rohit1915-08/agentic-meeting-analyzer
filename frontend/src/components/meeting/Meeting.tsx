@@ -73,9 +73,9 @@ export const Meeting: React.FC = () => {
           {/* LIVE TRANSCRIPT PANEL */}
           <div className="lg:col-span-8 bg-zinc-900 border border-zinc-800 rounded-sm relative overflow-hidden shadow-2xl">
             {/* Left-edge Red Indicator */}
-            <div className="absolute top-0 left-0 w-[2px] h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
+            <div className="absolute top-0 left-0 w-0.5 h-full bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
 
-            <div className="p-6 flex flex-col h-[650px]">
+            <div className="p-6 flex flex-col h-162.5">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-[11px] font-black text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                   <Activity

@@ -130,7 +130,7 @@ export const TaskTracker = () => {
                   </div>
                 </div>
 
-                <h3 className="text-base font-bold text-white uppercase tracking-tight mb-8 leading-snug min-h-[3rem] group-hover:text-red-500 transition-colors">
+                <h3 className="text-base font-bold text-white uppercase tracking-tight mb-8 leading-snug min-h-12 group-hover:text-red-500 transition-colors">
                   {task.title}
                 </h3>
 

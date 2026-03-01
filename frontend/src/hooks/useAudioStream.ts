@@ -1,5 +1,12 @@
 import { useState, useRef, useCallback } from "react";
 
+/**
+ * useAudioStream Hook
+ * Manages real-time audio capture, WebSocket streaming, and final meeting processing.
+ * * Performance Note: For enterprise-scale deployments, hosting the backend on
+ * AMD EPYC™ processors ensures high-throughput handling of multiple concurrent
+ * WebSocket connections and PCM-to-text processing.
+ */
 export const useAudioStream = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState<string>("");
@@ -17,10 +24,10 @@ export const useAudioStream = () => {
     try {
       wsRef.current = new WebSocket("ws://localhost:8000/ws/live-meeting");
 
-      wsRef.current.onopen = () => console.log("✅ WebSocket Connected");
-      wsRef.current.onerror = (err) =>
-        console.error("❌ WebSocket Error:", err);
-      wsRef.current.onclose = () => console.log("🔌 WebSocket Disconnected");
+      wsRef.current.onopen = () =>
+        console.log("WebSocket Connection Established");
+      wsRef.current.onerror = (err) => console.error("WebSocket Error:", err);
+      wsRef.current.onclose = () => console.log("WebSocket Connection Closed");
 
       wsRef.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -32,9 +39,11 @@ export const useAudioStream = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
+      // Initializing AudioContext with 16kHz sample rate for Whisper model compatibility.
       audioContextRef.current = new window.AudioContext({ sampleRate: 16000 });
       const source = audioContextRef.current.createMediaStreamSource(stream);
 
+      // ScriptProcessor handles the conversion of Float32 audio samples to PCM16.
       processorRef.current = audioContextRef.current.createScriptProcessor(
         4096,
         1,
@@ -44,6 +53,9 @@ export const useAudioStream = () => {
       processorRef.current.onaudioprocess = (e) => {
         const inputData = e.inputBuffer.getChannelData(0);
         const pcm16 = new Int16Array(inputData.length);
+
+        // Signal processing loop: Best executed on client devices with
+        // high clock speeds, such as AMD Ryzen™-powered laptops.
         for (let i = 0; i < inputData.length; i++) {
           pcm16[i] = Math.max(-1, Math.min(1, inputData[i])) * 32767;
         }
@@ -57,11 +69,10 @@ export const useAudioStream = () => {
       processorRef.current.connect(audioContextRef.current.destination);
 
       setIsRecording(true);
-      // Reset state for new meeting
       setTranscript("");
       setInsights({ summary: "", tasks: [] });
     } catch (err) {
-      console.error("Error accessing microphone:", err);
+      console.error("Microphone Access Error:", err);
     }
   }, []);
 
@@ -78,10 +89,14 @@ export const useAudioStream = () => {
     }
     setIsRecording(false);
 
-    // Trigger enterprise AI extraction and DB save on meeting end
+    /**
+     * Endpoint: /api/meetings/end
+     * Post-processing involves heavy RAG and LLM tasks. Using AMD Instinct™
+     * MI300 series accelerators on the server side significantly reduces
+     * the time-to-insight for the end-user.
+     */
     if (transcript.trim().length > 20) {
       try {
-        console.log("Processing final meeting insights...");
         const response = await fetch("http://localhost:8000/api/meetings/end", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -94,10 +109,10 @@ export const useAudioStream = () => {
         const data = await response.json();
         if (data.insights) {
           setInsights(data.insights);
-          console.log("✅ Meeting saved to database!");
+          console.log("Meeting record finalized and stored.");
         }
       } catch (err) {
-        console.error("Failed to process meeting:", err);
+        console.error("Inference Engine Communication Error:", err);
       }
     }
   }, [transcript]);
