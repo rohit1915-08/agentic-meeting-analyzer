@@ -1,4 +1,14 @@
 import { useEffect, useState } from "react";
+import {
+  ClipboardCheck,
+  User,
+  Clock,
+  Link2,
+  AlertCircle,
+  Layers,
+  Terminal,
+  Filter,
+} from "lucide-react";
 
 export const TaskTracker = () => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -10,7 +20,6 @@ export const TaskTracker = () => {
         const response = await fetch("http://localhost:8000/api/meetings/");
         const meetings = await response.json();
 
-        // Extract and flatten all tasks from all meetings into a single array
         let allTasks: any[] = [];
         meetings.forEach((meeting: any) => {
           if (meeting.summary_json?.tasks) {
@@ -38,51 +47,125 @@ export const TaskTracker = () => {
 
   if (loading)
     return (
-      <div className="p-8 text-center text-gray-500">Loading tasks...</div>
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Layers className="text-red-600 animate-pulse" size={40} />
+          <p className="text-zinc-500 font-mono text-[10px] uppercase tracking-[0.4em]">
+            Aggregating Directives...
+          </p>
+        </div>
+      </div>
     );
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <h2 className="text-3xl font-bold mb-8 text-gray-800">
-        Master Task Tracker
-      </h2>
-
-      {tasks.length === 0 ? (
-        <p className="text-gray-500">No pending tasks across any meetings.</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tasks.map((task, idx) => (
-            <div
-              key={idx}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col hover:shadow-md transition"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                  {task.owner}
+    <div className="min-h-screen bg-[#09090b] text-zinc-100 p-6 font-sans antialiased">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* HEADER SECTION */}
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-6">
+          <div className="flex items-center gap-5">
+            <div className="h-10 w-10 bg-red-600 flex items-center justify-center rotate-45 shadow-[0_0_20px_rgba(220,38,38,0.2)]">
+              <ClipboardCheck size={20} className="-rotate-45 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black uppercase tracking-tighter text-white leading-none">
+                Directive{" "}
+                <span className="text-zinc-500 font-light tracking-normal text-xl">
+                  Oversight
                 </span>
-                <span
-                  className={`text-xs font-bold px-2 py-1 rounded-md ${task.deadline !== "None" ? "bg-red-50 text-red-600" : "bg-gray-100 text-gray-500"}`}
-                >
-                  {task.deadline !== "None"
-                    ? `Due: ${task.deadline}`
-                    : "No Deadline"}
-                </span>
-              </div>
-
-              <h3 className="text-lg font-medium text-gray-800 mb-4 leading-tight">
-                {task.title}
-              </h3>
-
-              <div className="mt-auto pt-4 border-t border-gray-100">
-                <p className="text-xs text-gray-500">
-                  <span className="font-semibold text-gray-400">Source:</span>{" "}
-                  {task.meetingTitle}
+              </h1>
+              <div className="flex items-center gap-3 mt-1.5">
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em]">
+                  Cross-Session Task Matrix
                 </p>
+                <div className="h-1 w-1 rounded-full bg-zinc-700" />
+                <span className="text-[10px] text-red-600 font-mono font-black uppercase">
+                  {tasks.length} Total Units
+                </span>
               </div>
             </div>
-          ))}
+          </div>
         </div>
-      )}
+
+        {/* TASK GRID */}
+        {tasks.length === 0 ? (
+          <div className="h-96 border border-dashed border-zinc-800 rounded-sm flex flex-col items-center justify-center opacity-20">
+            <Terminal size={48} className="mb-4" />
+            <p className="uppercase text-xs tracking-[0.3em]">
+              No Active Directives In Cache
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {tasks.map((task, idx) => (
+              <div
+                key={idx}
+                className="bg-zinc-900 border border-zinc-800 rounded-sm p-6 relative group hover:border-red-900/50 transition-all duration-300 shadow-xl overflow-hidden"
+              >
+                {/* Visual Metadata Overlay */}
+                <div className="absolute top-0 right-0 p-2 opacity-5 pointer-events-none">
+                  <span className="font-mono text-4xl font-black italic">
+                    #{idx + 1}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-2 bg-zinc-950 border border-zinc-800 px-3 py-1 rounded-sm">
+                    <User size={12} className="text-red-600" />
+                    <span className="text-[10px] font-black text-zinc-300 uppercase tracking-tighter">
+                      {task.owner}
+                    </span>
+                  </div>
+
+                  <div
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-sm border ${
+                      task.deadline !== "None"
+                        ? "bg-red-950/20 border-red-900/50 text-red-500"
+                        : "bg-zinc-950 border-zinc-800 text-zinc-600"
+                    }`}
+                  >
+                    <Clock size={12} />
+                    <span className="text-[10px] font-bold uppercase tracking-tight">
+                      {task.deadline !== "None" ? task.deadline : "TBD"}
+                    </span>
+                  </div>
+                </div>
+
+                <h3 className="text-base font-bold text-white uppercase tracking-tight mb-8 leading-snug min-h-[3rem] group-hover:text-red-500 transition-colors">
+                  {task.title}
+                </h3>
+
+                <div className="space-y-4">
+                  {/* Source Metadata */}
+                  <div className="pt-4 border-t border-zinc-800 flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-zinc-500">
+                      <Link2 size={12} className="text-zinc-700" />
+                      <span className="text-[9px] font-black uppercase tracking-widest text-zinc-600">
+                        Origin Point
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-400 font-medium italic border-l-2 border-zinc-800 pl-3">
+                      {task.meetingTitle}
+                    </p>
+                  </div>
+
+                  {/* Date Indicator */}
+                  <div className="flex justify-between items-center text-[9px] font-mono text-zinc-600">
+                    <span className="uppercase">Logged_AT:</span>
+                    <span>
+                      {new Date(task.meetingDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status Bar */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-zinc-800 overflow-hidden">
+                  <div className="h-full bg-red-600 w-1/3 group-hover:w-full transition-all duration-700 ease-in-out opacity-30 group-hover:opacity-100" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -7,9 +7,16 @@ from langchain_core.output_parsers import StrOutputParser
 from datetime import datetime
 from langchain_ollama import ChatOllama
 
+# 🚀 AMD ZEN OPTIMIZATION: Hardware-Mapped Inference via Ollama
+# Change '8' to match your Ryzen's EXACT physical core count
+PHYSICAL_CORES = 8
+
 llm = ChatOllama(
     model="llama3.1:8b",
-    temperature=0.1
+    temperature=0.1,
+    # Injecting hardware-specific run parameters into the Ollama backend
+    num_thread=PHYSICAL_CORES,  # Prevents virtual thread context switching
+    num_ctx=4096                # Pre-allocates memory for RAG context
 )
 
 prompt_template = PromptTemplate(

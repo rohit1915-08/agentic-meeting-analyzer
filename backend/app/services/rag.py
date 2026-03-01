@@ -1,10 +1,25 @@
 import os
+import torch
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 
-# 1. Load the lightning-fast local embedding model
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# 🚀 AMD ZEN OPTIMIZATION 1: Thread pinning for vector math
+# Change '8' to match your Ryzen's physical core count
+PHYSICAL_CORES = "8"
+os.environ["OMP_NUM_THREADS"] = PHYSICAL_CORES
+torch.set_num_threads(int(PHYSICAL_CORES))
+
+# 🚀 AMD ZEN OPTIMIZATION 2: Hardware-Locked Embedding Engine
+# Explicitly target the CPU and optimize batching for the Zen L3 cache
+embeddings = HuggingFaceEmbeddings(
+    model_name="all-MiniLM-L6-v2",
+    model_kwargs={'device': 'cpu'}, 
+    encode_kwargs={
+        'normalize_embeddings': True, # Speeds up Chroma's cosine similarity search
+        'batch_size': 32              # Optimal chunk size for AVX instructions
+    }
+)
 
 # 2. Set up local ChromaDB storage
 CHROMA_DB_DIR = os.path.join(os.path.dirname(__file__), "../../chroma_db")
@@ -46,7 +61,9 @@ def query_meetings(question: str, k=3):
     return context
 
 def delete_meeting_from_rag(meeting_id: str):
-    # Ensure this directory matches where you persist your data
-    vector_store = Chroma(persist_directory="./chroma_db", embedding_function=embeddings)
-    # Chroma uses the metadata or ID to find and purge the specific document
+    # Fixed bug: Replaced hardcoded path with your dynamic CHROMA_DB_DIR
+    vector_store = Chroma(
+        persist_directory=CHROMA_DB_DIR, 
+        embedding_function=embeddings
+    )
     vector_store.delete(ids=[meeting_id])
